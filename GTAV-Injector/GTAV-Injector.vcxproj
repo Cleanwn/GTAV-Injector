@@ -216,6 +216,7 @@
     <ClCompile Include="dependencies\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="dependencies\imgui\imgui_tables.cpp" />
     <ClCompile Include="dependencies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\elements\elements.cpp" />
     <ClCompile Include="src\Helpers\d3d11Helper.cpp" />
     <ClCompile Include="src\Helpers\GTAV_Helper.cpp" />
     <ClCompile Include="src\Helpers\HelperFunctions.cpp" />
@@ -244,6 +245,7 @@
     <ClInclude Include="dependencies\imgui\imstb_textedit.h" />
     <ClInclude Include="dependencies\imgui\imstb_truetype.h" />
     <ClInclude Include="dependencies\ini.h" />
+    <ClInclude Include="src\elements\elements.h" />
     <ClInclude Include="src\Helpers\d3d11Helper.h" />
     <ClInclude Include="src\Helpers\GTAV_Helper.h" />
     <ClInclude Include="src\Helpers\HelperFunctions.h" />

@@ -215,13 +215,8 @@ void InjectDLLs()
 				try
 				{
 					fs::remove(file);
-
 				}
-				catch (std::exception& e)
-				{
-					CloseHandle(handle);
-					throw std::runtime_error(std::format("Failed to remove temp dll '{}'\n{}", file.path().string(), e.what()));
-				}
+				catch (...) {}
 			}
 		}
 	}
@@ -247,11 +242,14 @@ void InjectDLLs()
 			if (exists(file_path))
 			{
 				size_t i = 0;
+				std::wstring extension = file_path.extension();
+				file_path.replace_extension("");
 				do
 				{
 					++i;
 				}
-				while (exists(file_path.replace_extension(std::to_wstring(i) + file_path.extension().wstring())));
+				while (fs::exists(file_path.wstring() + std::to_wstring(i) + extension));
+				file_path = file_path.wstring() + L"_" + std::to_wstring(i) + extension;
 			}
 
 			copy_file(entry.path, file_path);

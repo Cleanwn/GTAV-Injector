@@ -1,4 +1,5 @@
 #include "Settings.h"
+#include "elements/elements.h"
 #include "Helpers/d3d11Helper.h"
 #include "Helpers/GTAV_Helper.h"
 #include "Helpers/HelperFunctions.h"
@@ -11,7 +12,6 @@ void RenderFrame(bool vsync);
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _In_ int)
 {
-	LoadSettings();
 	g_instance = hInstance;
 
 	if (DWORD c = RegisterClassH(g_instance, APP_CLASS_NAME, WndProc); c != 0)
@@ -26,6 +26,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 		UnregisterClassH(g_instance, APP_CLASS_NAME);
 		return (int)c;
 	}
+	DragAcceptFiles(g_main_hwnd, true);
 
 	if (HRESULT hr = InitD3D11(g_main_hwnd, APP_WIDTH, APP_HEIGHT); FAILED(hr))
 	{
@@ -49,6 +50,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 	UpdateWindow(g_main_hwnd);
 	g_running = true;
 
+	LoadSettings();
 	while (g_running)
 	{
 		MSG msg;
@@ -69,6 +71,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 		RenderFrame(true);
 	}
 
+	SaveSettings();
+	DragAcceptFiles(g_main_hwnd, false);
 	CleanupImGui();
 	CleanupD3D11();
 	if (g_main_hwnd)
@@ -100,6 +104,19 @@ LRESULT WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return 0;
 
 			break;
+		}
+		case WM_DROPFILES:
+		{
+			HDROP drop = (HDROP)wParam;
+			wchar_t file_path[MAX_PATH];
+			if (DragQueryFileW(drop, 0, file_path, MAX_PATH))
+			{
+				DragFinish(drop);
+				if (!std::ranges::any_of(Settings::dll_entries, [file_path](Settings::DllEntry& entry) { return entry.path == file_path; }))
+					Settings::dll_entries.emplace_back(true, file_path);
+			}
+
+			return 0;
 		}
 		case WM_CLOSE:
 		{
@@ -146,7 +163,6 @@ void DllContextMenu(Settings::DllEntry& entry)
 		if (ImGui::Button("Remove"))
 		{
 			Settings::dll_entries.erase(Settings::dll_entries.begin() + (int64_t)clicked_index);
-			SaveSettings();
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -160,7 +176,6 @@ void DllContextMenu(Settings::DllEntry& entry)
 				Settings::dll_entries.erase(Settings::dll_entries.begin() + (int64_t)clicked_index);
 				Settings::dll_entries.insert(Settings::dll_entries.begin() + (int64_t)clicked_index - 1, copy);
 			}
-			SaveSettings();
 			ImGui::CloseCurrentPopup();
 		}
 		if (clicked_index == 0) ImGui::EndDisabled();
@@ -175,7 +190,6 @@ void DllContextMenu(Settings::DllEntry& entry)
 				Settings::dll_entries.erase(Settings::dll_entries.begin() + (int64_t)clicked_index);
 				Settings::dll_entries.insert(Settings::dll_entries.begin() + (int64_t)clicked_index + 1, copy);
 			}
-			SaveSettings();
 			ImGui::CloseCurrentPopup();
 		}
 		if (clicked_index == Settings::dll_entries.size() - 1) ImGui::EndDisabled();
@@ -220,14 +234,12 @@ void RenderFrame(bool vsync)
 				{
 					Settings::game_type = Settings::Legacy;
 					IsGameRunning(true);
-					SaveSettings();
 				}
 
 				if (ImGui::RadioButton("Enhanced", (int*)&Settings::game_type, Settings::Enhanced))
 				{
 					Settings::game_type = Settings::Enhanced;
 					IsGameRunning(true);
-					SaveSettings();
 				}
 			}
 			ImGui::End();
@@ -240,19 +252,16 @@ void RenderFrame(bool vsync)
 				if (ImGui::RadioButton("Rockstar", (int*)&Settings::launcher_type, Settings::Rockstar))
 				{
 					Settings::launcher_type = Settings::Rockstar;
-					SaveSettings();
 				}
 
 				if (ImGui::RadioButton("Epic Games", (int*)&Settings::launcher_type, Settings::EpicGames))
 				{
 					Settings::launcher_type = Settings::EpicGames;
-					SaveSettings();
 				}
 
 				if (ImGui::RadioButton("Steam", (int*)&Settings::launcher_type, Settings::Steam))
 				{
 					Settings::launcher_type = Settings::Steam;
-					SaveSettings();
 				}
 			}
 			ImGui::End();
@@ -307,7 +316,6 @@ void RenderFrame(bool vsync)
 							if (!std::ranges::any_of(Settings::dll_entries, [path](Settings::DllEntry& entry) { return entry.path == path; }))
 								Settings::dll_entries.emplace_back(true, path);
 						}
-						SaveSettings();
 					}
 				}
 
@@ -322,6 +330,7 @@ void RenderFrame(bool vsync)
 					for (size_t i = 0; i < Settings::dll_entries.size(); ++i)
 					{
 						Settings::DllEntry& entry = Settings::dll_entries[i];
+						ImGui::PushID((int)i);
 						if (i == clicked_index)
 						{
 							DllContextMenu(entry);
@@ -330,25 +339,23 @@ void RenderFrame(bool vsync)
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
 						ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.f, 3.f));
-						if (ImGui::Checkbox(std::format("##Enabled{}", i).c_str(), &entry.enabled))
-						{
-							SaveSettings();
-						}
+						ImGui::Checkbox("##Enabled", &entry.enabled);
 						ImGui::PopStyleVar();
 
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable(entry.path.filename().string().c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
+						if (ImGui::Custom::SelectableRightClick(entry.path.filename().string().c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
 						{
 							clicked_index = i;
 							ImGui::OpenPopup("ContextMenu");
 						}
 
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable(entry.path.string().c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
+						if (ImGui::Custom::SelectableRightClick(entry.path.string().c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
 						{
 							clicked_index = i;
 							ImGui::OpenPopup("ContextMenu");
 						}
+						ImGui::PopID();
 					}
 					ImGui::EndTable();
 				}
