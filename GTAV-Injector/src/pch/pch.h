@@ -3,7 +3,7 @@
 
 #define APP_NAME "GTAV Injector"
 #define APP_CLASS_NAME "GTAVINJECTOR"
-#define APPDATA_FOLER "GTAVI"
+#define APPDATA_FOLER "GTAV-Inj"
 #define APP_WIDTH 750
 #define APP_HEIGHT 280
 

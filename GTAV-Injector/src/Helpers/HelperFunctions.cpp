@@ -93,13 +93,13 @@ bool FilePickerMultiW(LPCWSTR title, LPCWSTR filter, DWORD filter_index, std::ve
 					break;
 				}
 
-				std::wstring fileName;
-				for (size_t last = pos + 1; buffer[pos + 1] != '\0'; pos++)
+				std::wstring file_name;
+				for (; buffer[pos + 1] != '\0'; pos++)
 				{
-					fileName += buffer[pos + 1];
+					file_name += buffer[pos + 1];
 				}
 
-				out_paths->emplace_back(path.wstring() + L"\\" + fileName);
+				out_paths->emplace_back(path.wstring() + L"\\" + file_name);
 				pos++;
 			}
 		}
@@ -132,70 +132,6 @@ bool FilePickerMultiW(LPCWSTR title, LPCWSTR filter, DWORD filter_index, std::ve
 	}
 
 	return false;
-}
-
-
-std::wstring ReadFileW(const fs::path& path)
-{
-	if (!exists(path))
-		throw std::runtime_error("file does not exist");
-
-	fs::file_status status = fs::status(path);
-	fs::perms perms = status.permissions();
-
-	if (status.type() != fs::file_type::regular)
-		throw std::runtime_error("path does not result to regular file");
-
-	if ((perms & fs::perms::owner_read) != fs::perms::none && (perms & fs::perms::group_read) != fs::perms::none && (perms & fs::perms::group_read) != fs::perms::none)
-		throw std::runtime_error("file is not readable");
-
-	std::wifstream file(path);
-	file.exceptions(std::wifstream::failbit | std::wifstream::badbit);
-
-	std::wstringstream source;
-	source.exceptions(std::wstringstream::failbit | std::wstringstream::badbit);
-	source << file.rdbuf();
-
-	return source.str();
-}
-
-std::string ReadFileA(const fs::path& path)
-{
-	if (!exists(path))
-		throw std::runtime_error("file does not exist");
-
-	fs::file_status status = fs::status(path);
-	fs::perms perms = status.permissions();
-
-	if (status.type() != fs::file_type::regular)
-		throw std::runtime_error("path does not result to regular file");
-
-	if ((perms & fs::perms::owner_read) != fs::perms::none && (perms & fs::perms::group_read) != fs::perms::none && (perms & fs::perms::group_read) != fs::perms::none)
-		throw std::runtime_error("file is not readable");
-
-	std::ifstream file(path);
-	file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-	std::stringstream source;
-	file.exceptions(std::stringstream::failbit | std::stringstream::badbit);
-	source << file.rdbuf();
-
-	return source.str();
-}
-
-
-void WriteFileW(const fs::path& path, const std::wstring& data)
-{
-	std::wofstream file(path);
-	file.exceptions(std::wofstream::failbit | std::wofstream::badbit);
-	file << data;
-}
-
-void WriteFileA(const fs::path& path, const std::string& data)
-{
-	std::ofstream file(path);
-	file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	file << data;
 }
 
 
