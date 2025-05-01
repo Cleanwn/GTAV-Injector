@@ -200,7 +200,7 @@ DWORD CopyToClipboardA(const std::string& str)
 
 void LoadSettings()
 {
-	fs::path path = fs::path(std::getenv("appdata")) / APPDATA_FOLER / "Settings.ini";
+	fs::path path = fs::path(std::getenv("appdata")) / APPDATA_FOLER / "Settings.ini";  // NOLINT(concurrency-mt-unsafe)
 	if (!exists(path.parent_path()))
 	{
 		create_directories(path.parent_path());
@@ -241,7 +241,7 @@ void LoadSettings()
 
 void SaveSettings()
 {
-	fs::path path = fs::path(std::getenv("appdata")) / APPDATA_FOLER / "Settings.ini";
+	fs::path path = fs::path(std::getenv("appdata")) / APPDATA_FOLER / "Settings.ini";  // NOLINT(concurrency-mt-unsafe)
 	if (!exists(path.parent_path()))
 		create_directories(path);
 

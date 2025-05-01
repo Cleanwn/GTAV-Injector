@@ -16,13 +16,13 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 
 	if (DWORD c = RegisterClassH(g_instance, APP_CLASS_NAME, WndProc); c != 0)
 	{
-		MessageBox(nullptr, std::format("failed to register class ({})", c).c_str(), "Error", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, std::format("failed to register class ({})", c).c_str(), "Error", MB_OK | MB_ICONERROR);
 		return (int)c;
 	}
 
 	if (DWORD c = CreateWindowH(&g_main_hwnd, g_instance, APP_NAME, APP_CLASS_NAME, APP_WIDTH, APP_HEIGHT, 0, CW_USEDEFAULT, CW_USEDEFAULT); c != 0)
 	{
-		MessageBox(nullptr, std::format("failed to create window ({})", c).c_str(), "Error", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, std::format("failed to create window ({})", c).c_str(), "Error", MB_OK | MB_ICONERROR);
 		UnregisterClassH(g_instance, APP_CLASS_NAME);
 		return (int)c;
 	}
@@ -30,7 +30,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 
 	if (HRESULT hr = InitD3D11(g_main_hwnd, APP_WIDTH, APP_HEIGHT); FAILED(hr))
 	{
-		MessageBox(g_main_hwnd, std::format("failed to initialize D3D11 ({})", hr).c_str(), "Error", MB_OK | MB_ICONERROR);
+		MessageBoxA(g_main_hwnd, std::format("failed to initialize D3D11 ({})", hr).c_str(), "Error", MB_OK | MB_ICONERROR);
 		CleanupD3D11();
 		DestroyWindowH(g_main_hwnd);
 		UnregisterClassH(g_instance, APP_CLASS_NAME);
@@ -39,7 +39,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 
 	if (!InitImGui(g_main_hwnd))
 	{
-		MessageBox(nullptr, "failed to initialize ImGui", "Error", MB_OK | MB_ICONERROR);
+		MessageBoxA(nullptr, "failed to initialize ImGui", "Error", MB_OK | MB_ICONERROR);
 		CleanupD3D11();
 		DestroyWindowH(g_main_hwnd);
 		UnregisterClassH(g_instance, APP_CLASS_NAME);
@@ -54,10 +54,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PWSTR, _I
 	while (g_running)
 	{
 		MSG msg;
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageA(&msg);
 			if (msg.message == WM_QUIT)
 			{
 				g_running = false;
@@ -292,7 +292,7 @@ void RenderFrame(bool vsync)
 						}
 						catch (std::exception& e)
 						{
-							MessageBox(g_main_hwnd, e.what(), "Warning", MB_OK | MB_ICONWARNING);
+							MessageBoxA(g_main_hwnd, e.what(), "Warning", MB_OK | MB_ICONWARNING);
 						}
 					}
 

@@ -56,32 +56,6 @@ bool ReadStringFromRegistry(const std::wstring& reg_sub_key, const std::wstring&
 	return false;
 }
 
-bool GetGameDirectory(fs::path* out_path)
-{
-	switch (Settings::launcher_type)
-	{
-		case Settings::Rockstar:
-		{
-			if (std::wstring path; ReadStringFromRegistry(L"SOFTWARE\\WOW6432Node\\Rockstar Games\\Grand Theft Auto V", L"InstallFolder", &path))
-			{
-				*out_path = path;
-				return true;
-			}
-
-			break;
-		}
-		case Settings::EpicGames:
-		{
-
-			break;
-		}
-		case Settings::Steam:
-			break;
-	}
-
-	return false;
-}
-
 bool GetPid(DWORD* out_pid)
 {
 	std::string_view process_name = Settings::game_type == Settings::Legacy ? "GTA5.exe" : "GTA5_Enhanced.exe";
@@ -128,14 +102,14 @@ bool IsGameRunning(bool no_time)
 
 bool IsWindowVisible()
 {
-	return FindWindow(Settings::game_type == Settings::Legacy ? "grcWindow" : "sgaWindow", nullptr) != nullptr;
+	return FindWindowA(Settings::game_type == Settings::Legacy ? "grcWindow" : "sgaWindow", nullptr) != nullptr;
 }
 
 void LaunchGame()
 {
 	if (IsGameRunning(true))
 	{
-		MessageBox(g_main_hwnd, "Game is already running", "Error", MB_OK | MB_ICONERROR);
+		MessageBoxA(g_main_hwnd, "Game is already running", "Error", MB_OK | MB_ICONERROR);
 		return;
 	}
 
@@ -152,9 +126,9 @@ void LaunchGame()
 		case Settings::EpicGames:
 		{
 			if (Settings::game_type == Settings::Legacy)
-				ShellExecute(nullptr, "open", "com.epicgames.launcher://apps/9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true", nullptr, nullptr, SW_SHOWNORMAL);
+				ShellExecuteA(nullptr, "open", "com.epicgames.launcher://apps/9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true", nullptr, nullptr, SW_SHOWNORMAL);
 			else
-				ShellExecute(nullptr, "open", "com.epicgames.launcher://apps/8769e24080ea413b8ebca3f1b8c50951?action=launch&silent=true", nullptr, nullptr, SW_SHOWNORMAL);
+				ShellExecuteA(nullptr, "open", "com.epicgames.launcher://apps/8769e24080ea413b8ebca3f1b8c50951?action=launch&silent=true", nullptr, nullptr, SW_SHOWNORMAL);
 
 			break;
 
@@ -162,9 +136,9 @@ void LaunchGame()
 		case Settings::Steam:
 		{
 			if (Settings::game_type == Settings::Legacy)
-				ShellExecute(nullptr, "open", "steam://run/271590", nullptr, nullptr, SW_SHOWNORMAL);
+				ShellExecuteA(nullptr, "open", "steam://run/271590", nullptr, nullptr, SW_SHOWNORMAL);
 			else
-				ShellExecute(nullptr, "open", "steam://run/3240220", nullptr, nullptr, SW_SHOWNORMAL);
+				ShellExecuteA(nullptr, "open", "steam://run/3240220", nullptr, nullptr, SW_SHOWNORMAL);
 
 			break;
 		}
@@ -175,7 +149,7 @@ void KillGame()
 {
 	if (!IsGameRunning(true))
 	{
-		MessageBox(g_main_hwnd, "Game is not running", "Error", MB_OK | MB_ICONERROR);
+		MessageBoxA(g_main_hwnd, "Game is not running", "Error", MB_OK | MB_ICONERROR);
 		return;
 	}
 
@@ -188,7 +162,7 @@ void KillGame()
 
 void InjectDLLs()
 {
-	HMODULE kernel32 = GetModuleHandle("kernel32.dll");
+	HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
 	void* loadlibA = GetProcAddress(kernel32, "LoadLibraryA");
 	if (loadlibA == nullptr)
 		throw std::runtime_error("Failed to get LoadLibraryA");
@@ -234,7 +208,7 @@ void InjectDLLs()
 			++dll_count;
 			if (!exists(entry.path) || is_empty(entry.path))
 			{
-				MessageBox(g_main_hwnd, std::format("File '{}' does not exist or is empty", entry.path.string()).c_str(), "Warning", MB_OK | MB_ICONWARNING);
+				MessageBoxA(g_main_hwnd, std::format("File '{}' does not exist or is empty", entry.path.string()).c_str(), "Warning", MB_OK | MB_ICONWARNING);
 				continue;
 			}
 
@@ -281,5 +255,5 @@ void InjectDLLs()
 	}
 	CloseHandle(handle);
 
-	MessageBox(g_main_hwnd, std::format("Injected {}/{} DLLs", injected_count, dll_count).c_str(), "Injected", MB_OK | MB_ICONINFORMATION);
+	MessageBoxA(g_main_hwnd, std::format("Injected {}/{} DLLs", injected_count, dll_count).c_str(), "Injected", MB_OK | MB_ICONINFORMATION);
 }
