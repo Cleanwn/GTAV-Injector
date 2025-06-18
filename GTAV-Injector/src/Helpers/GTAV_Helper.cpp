@@ -175,7 +175,7 @@ void InjectDLLs()
 	if (handle == nullptr)
 		throw std::runtime_error("Failed to get handle to game process");
 
-	fs::path path = fs::path(std::getenv("appdata")) / APPDATA_FOLER / "Temp";  // NOLINT(concurrency-mt-unsafe)
+	fs::path path = fs::path(std::getenv("userprofile")) / "Documents" / DOCUMENTS_FOLDER / "Temp";  // NOLINT(concurrency-mt-unsafe)
 	if (!exists(path))
 	{
 		create_directories(path);
@@ -222,7 +222,7 @@ void InjectDLLs()
 				{
 					++i;
 				}
-				while (fs::exists(file_path.wstring() + std::to_wstring(i) + extension));
+				while (fs::exists(file_path.wstring() + L"_" + std::to_wstring(i) + extension));
 				file_path = file_path.wstring() + L"_" + std::to_wstring(i) + extension;
 			}
 

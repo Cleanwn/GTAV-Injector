@@ -6,7 +6,7 @@ bool InitImGui(HWND hwnd)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	fs::path ini_path = fs::path(std::getenv("appdata")) / APPDATA_FOLER / "imgui.ini";  // NOLINT(concurrency-mt-unsafe)
+	fs::path ini_path = fs::path(std::getenv("userprofile")) / "Documents" / DOCUMENTS_FOLDER / "imgui.ini";  // NOLINT(concurrency-mt-unsafe)
 	size_t buffer_size = ini_path.string().size() + 1;
 	char* buffer = new char[buffer_size];
 	memcpy_s(buffer, buffer_size, ini_path.string().data(), ini_path.string().size());
